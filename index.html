@@ -4,17 +4,47 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stadium Tickets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
-  <h1>Baku Olympic Arena</h1>
-  <p>Football match · Blue Eagles – Green Oak</p>
+<header class="top">
+  <div>
+    <h1 data-i18n="title">Baku Olympic Arena</h1>
+    <p data-i18n="match">Football match · Blue Eagles – Green Oak</p>
+  </div>
 </header>
-<main>
-  <section id="map-panel"></section>
-  <aside>
-    <section id="details-panel"></section>
-    <section id="cart-panel"></section>
+
+<main class="layout">
+  <section class="map-panel">
+    <div class="legend" id="legend"></div>
+    <div id="viewport" class="viewport" aria-label="Stadium map">
+      <div id="world" class="world"></div>
+    </div>
+    <div class="controls" role="group" aria-label="Map controls">
+      <button id="zoomIn" data-i18n-title="zoomIn" title="Zoom In">＋</button>
+      <button id="zoomOut" data-i18n-title="zoomOut" title="Zoom Out">－</button>
+      <button id="moveUp" data-i18n-title="up" title="Move Up">↑</button>
+      <button id="moveDown" data-i18n-title="down" title="Move Down">↓</button>
+      <button id="moveLeft" data-i18n-title="left" title="Move Left">←</button>
+      <button id="moveRight" data-i18n-title="right" title="Move Right">→</button>
+      <button id="resetView" class="wide" data-i18n="reset">Reset view</button>
+    </div>
+  </section>
+
+  <aside class="side">
+    <section class="card details-card" aria-live="polite">
+      <h2 data-i18n="details">Seat details</h2>
+      <div id="details" class="details"></div>
+      <button id="addBtn" class="primary" data-i18n="add" disabled>ADD TO CART</button>
+    </section>
+    <section class="card">
+      <h2><span data-i18n="cart">Cart</span> <small id="count"></small></h2>
+      <ul id="cartList" class="cart"></ul>
+      <div class="total"><span data-i18n="total">Total</span><strong id="total">0 AZN</strong></div>
+      <button id="clearBtn" class="ghost" data-i18n="clear">Clear cart</button>
+    </section>
   </aside>
 </main>
 </body>
