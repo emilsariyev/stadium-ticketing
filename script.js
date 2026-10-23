@@ -26,12 +26,15 @@ const $ = id => document.getElementById(id);
 const t = k => I18N[lang][k];
 const fmt = n => n + ' AZN';
 
+function isSold(i) { const h = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return (h - Math.floor(h)) < 0.12; }
+
 function buildVenue() {
   const world = $('world');
   const pitch = document.createElement('div');
   pitch.className = 'pitch'; pitch.innerHTML = '<span id="pitchLbl"></span>';
   world.appendChild(pitch);
   const frag = document.createDocumentFragment();
+  let counter = 0;
   SECTIONS.forEach(sec => {
     const lbl = document.createElement('div');
     lbl.className = 'label'; lbl.dataset.sec = sec.id;
@@ -40,10 +43,11 @@ function buildVenue() {
     for (let r = 0; r < sec.rows; r++) for (let c = 0; c < sec.cols; c++) {
       const rowLetter = String.fromCharCode(65 + r), num = c + 1;
       const s = { id: `${sec.id}-${rowLetter}${num}`, sec, row: rowLetter, num, cat: sec.cat,
-                  price: CATEGORIES[sec.cat].price };
+                  price: CATEGORIES[sec.cat].price, unavailable: isSold(counter++) };
       const b = document.createElement('button');
       b.className = 'seat ' + sec.cat; b.dataset.id = s.id; b.type = 'button';
       b.style.left = sec.x + c * PITCH + 'px'; b.style.top = sec.y + r * PITCH + 'px';
+      if (s.unavailable) b.disabled = true;
       s.el = b; seats.set(s.id, s); frag.appendChild(b);
     }
   });
@@ -74,9 +78,16 @@ function applyLabels() {
   });
 }
 
+function renderLegend() {
+  $('legend').innerHTML = Object.values(CATEGORIES).map(c => `<span><i style="background:${c.color}"></i>${c.name[lang]} ${fmt(c.price)}</span>`).join('') +
+    `<span><i style="background:var(--cart)"></i>${t('legCart')}</span><span><i style="background:#fff;border:3px solid #111"></i>${t('legSel')}</span>` +
+    `<span><i style="background:var(--off)"></i>${t('legOff')}</span>`;
+}
+
 let lastW = innerWidth;
 window.addEventListener('resize', () => { if (innerWidth !== lastW) { lastW = innerWidth; resetView(); } else applyView(); });
 
 buildVenue();
 applyLabels();
+renderLegend();
 resetView();
