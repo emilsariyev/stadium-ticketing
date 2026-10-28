@@ -20,6 +20,7 @@ const I18N = {
 };
 
 const seats = new Map();
+let cart = [];
 let inspected = null;
 let lang = 'en';
 const view = { x: 0, y: 0, z: 1 };
@@ -84,23 +85,31 @@ $('moveLeft').onclick = () => move(STEP, 0); $('moveRight').onclick = () => move
 $('resetView').onclick = resetView;
 
 function paintSeat(s) {
+  s.el.classList.toggle('incart', cart.includes(s.id));
   s.el.classList.toggle('inspected', inspected === s.id);
   s.el.setAttribute('aria-label', `${s.sec.name[lang]} ${t('row')} ${s.row} ${t('seat')} ${s.num}, ${fmt(s.price)}, ` +
-    (s.unavailable ? t('unavailable') : t('available')));
+    (s.unavailable ? t('unavailable') : cart.includes(s.id) ? t('incart') : t('available')));
 }
 function renderDetails() {
   const s = seats.get(inspected), btn = $('addBtn');
   if (!s) { $('details').innerHTML = `<p class="empty">${t('none')}</p>`; btn.disabled = true; btn.textContent = t('add'); return; }
-  const inCart = false;
+  const inCart = cart.includes(s.id);
   const status = s.unavailable ? t('unavailable') : inCart ? t('incart') : t('available');
   $('details').innerHTML = `<dl><dt>${t('section')}</dt><dd>${s.sec.name[lang]}</dd><dt>${t('row')}</dt><dd>${s.row}</dd>
     <dt>${t('seat')}</dt><dd>${s.num}</dd><dt>${t('cat')}</dt><dd>${CATEGORIES[s.cat].name[lang]}</dd>
     <dt>${t('price')}</dt><dd>${fmt(s.price)}</dd><dt>${t('status')}</dt><dd>${status}</dd></dl>`;
-  btn.disabled = true;
+  btn.disabled = s.unavailable || inCart;
   btn.textContent = s.unavailable ? t('soldBtn') : inCart ? t('inCartBtn') : t('add');
 }
 function refresh(ids) { (ids || [...seats.keys()]).forEach(id => paintSeat(seats.get(id))); renderDetails(); }
 function inspect(id) { const prev = inspected; inspected = id; refresh([prev, id].filter(Boolean)); }
+function addToCart() {
+  const s = seats.get(inspected);
+  if (!s || s.unavailable || cart.includes(s.id)) return;
+  cart.push(s.id);
+  refresh([s.id]);
+}
+
 vp.addEventListener('click', e => {
   const b = e.target.closest('.seat');
   if (b && !b.disabled) inspect(b.dataset.id);
@@ -123,6 +132,7 @@ function renderLegend() {
 let lastW = innerWidth;
 window.addEventListener('resize', () => { if (innerWidth !== lastW) { lastW = innerWidth; resetView(); } else applyView(); });
 
+$('addBtn').onclick = addToCart;
 buildVenue();
 applyLabels();
 renderLegend();
