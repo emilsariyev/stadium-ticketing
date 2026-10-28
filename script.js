@@ -56,6 +56,7 @@ function buildVenue() {
 }
 
 const vp = $('viewport'), world = $('world');
+const MIN_Z = 0.25, MAX_Z = 3, STEP = 90;
 function applyView() {
   const w = vp.clientWidth, h = vp.clientHeight, ww = 1200 * view.z, wh = 900 * view.z, m = 80;
   view.x = Math.min(w - m, Math.max(m - ww, view.x));
@@ -70,6 +71,17 @@ function resetView() {
   view.y = (vp.clientHeight - BOUNDS.h * view.z) / 2 - BOUNDS.y * view.z;
   applyView();
 }
+
+function zoomAt(f, cx, cy) {
+  const nz = Math.min(MAX_Z, Math.max(MIN_Z, view.z * f)), k = nz / view.z;
+  view.x = cx - (cx - view.x) * k; view.y = cy - (cy - view.y) * k; view.z = nz; applyView();
+}
+const move = (dx, dy) => { view.x += dx; view.y += dy; applyView(); };
+$('zoomIn').onclick  = () => zoomAt(1.25, vp.clientWidth / 2, vp.clientHeight / 2);
+$('zoomOut').onclick = () => zoomAt(0.8, vp.clientWidth / 2, vp.clientHeight / 2);
+$('moveUp').onclick = () => move(0, STEP);  $('moveDown').onclick = () => move(0, -STEP);
+$('moveLeft').onclick = () => move(STEP, 0); $('moveRight').onclick = () => move(-STEP, 0);
+$('resetView').onclick = resetView;
 
 function paintSeat(s) {
   s.el.classList.toggle('inspected', inspected === s.id);
