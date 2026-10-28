@@ -101,13 +101,33 @@ function renderDetails() {
   btn.disabled = s.unavailable || inCart;
   btn.textContent = s.unavailable ? t('soldBtn') : inCart ? t('inCartBtn') : t('add');
 }
-function refresh(ids) { (ids || [...seats.keys()]).forEach(id => paintSeat(seats.get(id))); renderDetails(); }
+function renderCart() {
+  const list = $('cartList');
+  list.innerHTML = cart.length ? '' : `<li class="empty-cart">${t('empty')}</li>`;
+  let total = 0;
+  cart.forEach(id => {
+    const s = seats.get(id); total += s.price;
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${s.sec.name[lang]}<small>${t('row')} ${s.row} · ${t('seat')} ${s.num} · ${CATEGORIES[s.cat].name[lang]}</small></span>
+      <span>${fmt(s.price)} <button type="button" data-remove="${id}">${t('remove')}</button></span>`;
+    list.appendChild(li);
+  });
+  $('total').textContent = fmt(total);
+  $('count').textContent = cart.length ? `(${cart.length} ${t('tickets')})` : '';
+  $('clearBtn').disabled = !cart.length;
+}
+function refresh(ids) { (ids || [...seats.keys()]).forEach(id => paintSeat(seats.get(id))); renderDetails(); renderCart(); }
 function inspect(id) { const prev = inspected; inspected = id; refresh([prev, id].filter(Boolean)); }
 function addToCart() {
   const s = seats.get(inspected);
   if (!s || s.unavailable || cart.includes(s.id)) return;
   cart.push(s.id);
   refresh([s.id]);
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(x => x !== id);
+  refresh([id]);
 }
 
 vp.addEventListener('click', e => {
@@ -133,6 +153,8 @@ let lastW = innerWidth;
 window.addEventListener('resize', () => { if (innerWidth !== lastW) { lastW = innerWidth; resetView(); } else applyView(); });
 
 $('addBtn').onclick = addToCart;
+$('clearBtn').onclick = () => { const old = cart; cart = []; refresh(old); };
+$('cartList').addEventListener('click', e => { const id = e.target.dataset.remove; if (id) removeFromCart(id); });
 buildVenue();
 applyLabels();
 renderLegend();
