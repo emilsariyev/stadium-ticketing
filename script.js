@@ -19,6 +19,7 @@ const I18N = {
   en: { title:'Baku Olympic Arena', match:'Football match · Blue Eagles – Green Oak', zoomIn:'Zoom In', zoomOut:'Zoom Out', up:'Move Up', down:'Move Down', left:'Move Left', right:'Move Right', reset:'Reset view', details:'Seat details', add:'ADD TO CART', cart:'Cart', total:'Total', clear:'Clear cart', pitch:'FOOTBALL PITCH', none:'Pick a seat on the map. Clicking only shows its details.', section:'Stand', row:'Row', seat:'Seat', cat:'Category', price:'Price', status:'Status', available:'Available', incart:'In cart', unavailable:'Sold', inCartBtn:'ALREADY IN CART', soldBtn:'UNAVAILABLE', remove:'Remove', empty:'Your cart is empty', tickets:'tickets', legCart:'In cart', legSel:'Selected', legOff:'Unavailable' }
 };
 
+const STORE_KEY = 'stadium_cart_v1';
 const seats = new Map();
 let cart = [];
 let inspected = null;
@@ -118,15 +119,24 @@ function renderCart() {
 }
 function refresh(ids) { (ids || [...seats.keys()]).forEach(id => paintSeat(seats.get(id))); renderDetails(); renderCart(); }
 function inspect(id) { const prev = inspected; inspected = id; refresh([prev, id].filter(Boolean)); }
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(cart)); } catch (e) {} };
+function loadCart() {
+  try { const saved = JSON.parse(localStorage.getItem(STORE_KEY)) || [];
+    cart = [...new Set(saved)].filter(id => seats.has(id) && !seats.get(id).unavailable);
+  } catch (e) { cart = []; }
+}
+
 function addToCart() {
   const s = seats.get(inspected);
   if (!s || s.unavailable || cart.includes(s.id)) return;
   cart.push(s.id);
+  save();
   refresh([s.id]);
 }
 
 function removeFromCart(id) {
   cart = cart.filter(x => x !== id);
+  save();
   refresh([id]);
 }
 
@@ -153,10 +163,11 @@ let lastW = innerWidth;
 window.addEventListener('resize', () => { if (innerWidth !== lastW) { lastW = innerWidth; resetView(); } else applyView(); });
 
 $('addBtn').onclick = addToCart;
-$('clearBtn').onclick = () => { const old = cart; cart = []; refresh(old); };
+$('clearBtn').onclick = () => { const old = cart; cart = []; save(); refresh(old); };
 $('cartList').addEventListener('click', e => { const id = e.target.dataset.remove; if (id) removeFromCart(id); });
 buildVenue();
 applyLabels();
 renderLegend();
+loadCart();
 refresh();
 resetView();
